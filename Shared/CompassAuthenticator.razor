@@ -1,0 +1,70 @@
+@using CompassApi
+@using Newtonsoft.Json
+@using System.Text
+@using GeneralPurposeLib
+@using GPSCompassClient.Data
+
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+
+@code {
+
+    [Parameter]
+    public Action<CachedCompassClient> OnLogin { get; set; } = _ => { };
+
+    [Parameter]
+    public bool RedirectToLogin { get; set; } = true;
+    
+    [Parameter]
+    public Action OnLoginFailed { get; set; } = () => { };
+    
+    protected override async void OnAfterRender(bool firstRender) {
+        if (!firstRender) {
+            return;
+        }
+
+        Cookie cookie = new(JSRuntime);
+        string state = await cookie.GetValue("state");
+        if (string.IsNullOrWhiteSpace(state)) {
+            NotLoggedIn();
+            return;
+        }
+        try {
+            state = Encoding.UTF8.GetString(Convert.FromBase64String(state.Replace('~', '=')));
+        }
+        catch (Exception) {
+            Console.WriteLine("Invalid state");
+            NotLoggedIn();
+            return;
+        }
+
+        CompassLoginState compassLoginState;
+        try {
+            compassLoginState = JsonConvert.DeserializeObject<CompassLoginState>(state).ThrowIfNull();
+        }
+        catch (Exception) {
+            NotLoggedIn();
+            return;
+        }
+        
+        CachedCompassClient compassClient = new(JSRuntime, compassLoginState);
+        try {
+            await compassClient.GetUserProfile();
+        }
+        catch (Exception e) {
+            Console.WriteLine("State didn't work: " + e);
+            NotLoggedIn();
+            return;
+        }
+        
+        OnLogin(compassClient);
+    }
+
+    private void NotLoggedIn() {
+        OnLoginFailed();
+        if (RedirectToLogin) {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+}

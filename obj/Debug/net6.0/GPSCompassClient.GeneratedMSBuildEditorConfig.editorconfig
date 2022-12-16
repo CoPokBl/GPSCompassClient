@@ -1,0 +1,92 @@
+is_global = true
+build_property.TargetFramework = net6.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = GPSCompassClient
+build_property.RootNamespace = GPSCompassClient
+build_property.ProjectDir = /media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/
+build_property.RazorLangVersion = 6.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient
+build_property._RazorSourceGeneratorDebug = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Calender.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2FsZW5kZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291bnRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/FetchData.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRmV0Y2hEYXRhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Lesson.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTGVzc29uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTG9naW4ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Profile.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUHJvZmlsZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/CompassAuthenticator.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL0NvbXBhc3NBdXRoZW50aWNhdG9yLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/DashGui.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL0Rhc2hHdWkucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/LoadScript.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL0xvYWRTY3JpcHQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/SurveyPrompt.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL1N1cnZleVByb21wdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/Tooltip.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL1Rvb2x0aXAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL01haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-2v7mm2ax2q
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL05hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-owg3vdmf33
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRXJyb3IuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/_Host.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvX0hvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/media/copokbl/Big Boi/Documents/Coding/C\#/GPSCompassClient/Pages/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvX0xheW91dC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 

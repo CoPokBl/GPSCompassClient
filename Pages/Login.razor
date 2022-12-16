@@ -1,0 +1,152 @@
+@page "/auth"
+@page "/login"
+@using CompassApi
+@using Newtonsoft.Json
+@using System.Text
+@using GPSCompassClient.Data
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<CompassAuthenticator RedirectToLogin="false" OnLogin='_ => NavigationManager.NavigateTo("/")' OnLoginFailed="() => {
+    _loading = false; StateHasChanged();
+}"></CompassAuthenticator>
+<link href="/css/login.css" rel="stylesheet">
+
+<div class="text-center form-signin">
+    
+    @if (_loading) {
+        <h3>Loading...</h3>
+    }
+    else {
+        <form onsubmit="return false">
+            <img class="mb-4" src="assets/images/icon.png" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 fw-normal">Sign In</h1>
+
+            <div style="color: red;">
+                @switch (_error) {
+
+                    case Error.None:
+                        break;
+
+                    case Error.NullFields:
+                        <p>Username, password and prefix are required</p>
+                        break;
+
+                    case Error.InvalidCredentials:
+                        <p>Invalid credentials</p>
+                        break;
+
+                    default:
+                        <p>An Unknown error has occured</p>
+                        break;
+                }
+            </div>
+
+            <div class="form-floating">
+                <input
+                    type="text"
+                    class="form-control"
+                    id="floatingPrefix"
+                    placeholder="EpicGamer9000"
+                    style="background-color: rgb(34, 34, 34); color: #ffffff">
+                <label for="floatingUsername">School Prefix</label>
+            </div>
+            <div class="form-floating">
+                <input
+                    type="text"
+                    class="form-control"
+                    id="floatingUsername"
+                    placeholder="EpicGamer9000"
+                    style="background-color: rgb(34, 34, 34); color: #ffffff">
+                <label for="floatingUsername">Username</label>
+            </div>
+            <div class="form-floating">
+                <input
+                    type="password"
+                    class="form-control"
+                    id="floatingPassword"
+                    placeholder="Password"
+                    style="background-color: rgb(34, 34, 34); color: #ffffff">
+                <label for="floatingPassword">Password</label>
+            </div>
+
+            <div class="checkbox mb-3">
+                <label>
+                    <input
+                        type="checkbox"
+                        value="remember-me"
+                        @bind="_rememberMe"
+                        @oninput="ui => _rememberMe = bool.Parse(ui.Value?.ToString()!.ToLower()!)"> Remember me
+                </label>
+            </div>
+            <button class="w-100 btn btn-lg btn-primary" @onclick="RunLogin" style="padding-bottom: 10px">Sign in</button>
+            <p>
+                You can find your school prefix by looking at your compass portal URL, for example if your URL was very-fancy-school.compass.education
+                then your school prefix would be very-fancy-school.
+            </p>
+        </form>
+    }
+
+</div>
+
+@code {
+    private bool _rememberMe;
+    private Error _error = Error.None;
+    private bool _loading = true;
+
+    private void ReloadText() {
+        InvokeAsync(StateHasChanged).Wait();
+    }
+
+    private async void RunLogin() {
+        HtmlInteractor interactor = new(JsRuntime);
+        string prefix = await interactor.GetValue("floatingPrefix");
+        string username = await interactor.GetValue("floatingUsername");
+        string password = await interactor.GetValue("floatingPassword");
+        
+        _loading = true;
+        ReloadText();
+        
+        if (string.IsNullOrWhiteSpace(prefix) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password)) {
+            _error = Error.NullFields;
+            _loading = false;
+            ReloadText();
+            return;
+        }
+        
+        CompassClient client = new(prefix, s => {
+            Console.WriteLine(s);
+            return Task.CompletedTask;
+        });
+        bool success;
+        try {
+            success = await client.Authenticate(username, password);
+        }
+        catch (Exception) {
+            success = false;
+        }
+        if (!success) {
+            _loading = false;
+            _error = Error.InvalidCredentials;
+            ReloadText();
+            return;
+        }
+        
+        // Login successful
+        string jsonState = JsonConvert.SerializeObject(client.GetLoginState());
+        jsonState = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonState)).Replace('=', '~');
+        Console.WriteLine("Saving state: " + jsonState);
+
+        Cookie cookie = new(JsRuntime);
+        await cookie.SetValue("state", jsonState, _rememberMe ? 8760 : 1);
+        
+        NavigationManager.NavigateTo("/");
+    }
+
+    enum Error {
+        None,
+        NullFields,
+        InvalidCredentials
+    }
+
+}

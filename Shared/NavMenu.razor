@@ -1,0 +1,25 @@
+﻿@using GPSCompassClient.Data
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<header class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow" style="background-color: rgba(54,55,62,0.95)">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">GPS</a>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  @* <input class="form-control form-control-dark w-100 bg-dark" type="text" placeholder="Search" aria-label="Search"> *@
+  <div class="navbar-nav">
+    <div class="nav-item text-nowrap">
+      <button class="btn-link btn nav-link px-3" href="#" @onclick="SignOut">Sign out</button>
+    </div>
+  </div>
+</header>
+
+@code {
+
+  private async void SignOut() {
+    Cookie cookie = new(JSRuntime);
+    await cookie.SetValue("state", "", 1);
+    NavigationManager.NavigateTo("/", true);
+  }
+}

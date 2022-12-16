@@ -1,0 +1,12 @@
+@inject IJSRuntime JsRuntime
+
+@code {
+    [Parameter]
+    public string Script { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        // invoke script loader
+        await JsRuntime.InvokeVoidAsync("loadScript", Script);
+        await base.OnAfterRenderAsync(firstRender);
+    }    
+}

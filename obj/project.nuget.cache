@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "b+gJq+MujB7oJtDL8DFqH7WF409e/m5MY0lYiUAQGPNMrfZ/4HrZrN5AvNPGzkylw9+/VQiAMnrGovuWh9qPUg==",
+  "success": true,
+  "projectFilePath": "/media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/GPSCompassClient.csproj",
+  "expectedPackageFiles": [
+    "/home/copokbl/.nuget/packages/generalpurposelib/1.1.2/generalpurposelib.1.1.2.nupkg.sha512",
+    "/home/copokbl/.nuget/packages/newtonsoft.json/13.0.2/newtonsoft.json.13.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,41 @@
+@page "/Profile"
+@using CompassApi
+@using GPSCompassClient.Data
+
+<CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
+
+<DashGui Page="DashGui.CurrentPage.Profile" Title="Profile">
+    
+    <div class="text-center">
+        <img src="@_user.PhotoUrl" alt="A picture of the below named user"/>
+        <h3>@_user.FullName</h3>
+        <h4>Student Code: @_user.StudentCode</h4>
+        <h4>Email: @_user.Email</h4>
+        <h4>House: @_user.House</h4>
+        <h4>HomeGroup: @_user.HomeGroup</h4>
+        <h4>Year: @_user.YearLevel</h4>
+        <h4>School: <a href="https://@_user.SchoolCompassUrl">@_user.SchoolCompassUrl</a></h4>
+        
+        <h4>Attendance:</h4>
+        @foreach (CompassUserPresenceEntry? entry in _user.Presence) {
+            <h5>@entry.TimePeriodName (@entry.TimePeriodStart.ToShortTimeString() - @entry.TimePeriodEnd.ToShortTimeString()): 
+                @(entry.Present ? "Present" : "Not Present") (@entry.StatusName)</h5>
+        }
+    </div>
+    
+</DashGui>
+
+@code {
+    private CompassUser _user = new() {
+        FullName = "Loading...",
+        Presence = Array.Empty<CompassUserPresenceEntry>()
+    };
+    private CompassNewsItem[] _newsItems = Array.Empty<CompassNewsItem>();
+    private CompassClass[] _classesToday = Array.Empty<CompassClass>();
+    
+    private async void OnLogin(CachedCompassClient client) {
+        _user = await client.GetUserProfile();
+        StateHasChanged();
+    }
+    
+}

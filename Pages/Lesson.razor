@@ -1,0 +1,139 @@
+@page "/Lesson"
+@using CompassApi
+@using GeneralPurposeLib
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Primitives
+@inject NavigationManager NavigationManager
+
+<CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
+
+<DashGui Page="DashGui.CurrentPage.Disabled" Title="Lesson Viewer">
+    <div class="text-center">
+        @* <h3>@_lesson.Name</h3> *@
+        
+        <div class="row">
+            
+            <div class="col-3">
+                <div class="rounded-3 border border-white p-1">
+                    <h4>@(_lesson == null ? "Loading..." : string.IsNullOrWhiteSpace(_lesson.Name) || _lesson.Name == "Unknown" ? _lesson.Id : _lesson.Name)</h4>
+                </div>
+                <div class="rounded-3 border border-white p-3 text-start" style="background-color: rgba(115,125,129,0.95); color: black">
+                    @if (_lesson == null) {
+                        <p>Loading...</p>
+                    }
+                    else {
+                        <img src="@_lesson.TeacherImageLink" alt="An image of the below named teacher"/>
+                        <h5>@_lesson.Teacher</h5>
+                        <p>ID: @_lesson.Id</p>
+                        <p>Location: @((MarkupString) _lesson.Room)</p>
+                        <p>Time: @_lesson.StartTime.ToShortDateString() @_lesson.StartTime.ToShortTimeString() - @_lesson.EndTime.ToShortDateString() @_lesson.EndTime.ToShortTimeString()</p>
+                        <p>Length: @((_lesson.EndTime - _lesson.StartTime).ToFormat("{h} hrs {m} mins"))</p>
+                    }
+                </div>
+            </div>
+            
+            <div class="col-6">
+                <div class="rounded-3 border border-white p-1">
+                    <h4>Lesson Plan</h4>
+                </div>
+                @* rgba(154,151,149,0.95) *@
+                <div class="rounded-3 border border-white p-3 text-start" style="background-color: rgba(115,125,129,0.95); color: black">
+                    @if (_lesson == null) {
+                        <p>Loading...</p>
+                    }
+                    else {
+                        <p>@((MarkupString) (_lesson.LessonPlan == "" ? "<b>No Lesson Plan</b>" : _lesson.LessonPlan))</p>
+                    }
+                </div>
+            </div>
+            
+            <div class="col-3">
+                <div class="rounded-3 border border-white p-1">
+                    <h4>Learning Tasks</h4>
+                </div>
+                <div class="rounded-3 border border-white p-3 text-start" style="background-color: rgba(115,125,129,0.95); color: black">
+                    @if (_tasks == null || _lesson == null) {
+                        <p>Loading...</p>
+                    }
+                    else {
+                        @if(_tasks.Length == 0) {
+                            <p><b>No Learning Tasks</b></p>
+                        }
+                        @foreach (CompassLearningTask task in _tasks) {
+                            <div class="border-light border p-1 rounded" style="background-color: rgba(179,183,206,0.95)">
+                                <h6>@task.Name</h6>
+                                <p>Due: @task.DueDate.ToLocalTime()</p>
+                                @((MarkupString)GetDueText(task))
+                            </div>
+                            <br/>
+                        }
+                    }
+                </div>
+            </div>
+            
+        </div>
+        
+        
+    </div>
+</DashGui>
+
+@code {
+    private CompassLesson? _lesson;
+    private CompassLearningTask[]? _tasks;
+
+    private string GetDueText(CompassLearningTask task) {
+        
+        switch (task.SubmissionStatus) {
+            case CompassLearningTaskSubmissionStatus.Overdue:
+                return "<p class=\"text-danger\">Overdue</p>";
+            case CompassLearningTaskSubmissionStatus.OnTime:
+                return "<p class=\"text-success\">Completed</p>";
+            case CompassLearningTaskSubmissionStatus.Late:
+                return "<p class=\"text-warning\">Completed Late</p>";
+            case CompassLearningTaskSubmissionStatus.NotSubmitted:
+                break;
+            case CompassLearningTaskSubmissionStatus.Unknown:
+                return "<p>Unknown Completion Status</p>";
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        string colorClassString = "text-success";
+        if (task.DueDate.ToLocalTime() < DateTime.Now.AddDays(1)) {
+            colorClassString = "text-warning";
+        }
+        
+        return $"<p class=\"{colorClassString}\">Due in {task.DueDate.ToLocalTime().Subtract(DateTime.Now).ToFormat("{d} days {h} hrs {m} mins")}</p>";
+    }
+
+    private async void OnLogin(CompassClient client) {
+        
+        // Get query string parameters
+        Dictionary<string, StringValues> queryParameters = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);
+        if (queryParameters.TryGetValue("lesson", out StringValues lessonId)) {
+            // Get lesson
+            Task<CompassLesson?> getLessonTsk = client.GetLesson(lessonId[0]);
+            Task _ = getLessonTsk.ContinueWith(task => {
+                _lesson = task.Result ?? new CompassLesson {
+                    Name = "Lesson Not Found"
+                };
+                InvokeAsync(StateHasChanged).Wait();
+                
+                Task<IEnumerable<CompassLearningTask>> getLearningTasks = client.GetLearningTasksByClass(_lesson.ActivityId);
+                Task unused = getLearningTasks.ContinueWith(task1 => {
+                    _tasks = task1.Result.ToArray();
+                    
+                    // Sort tasks so that the most urgent is at the top
+                    Array.Sort(_tasks);
+                    
+                    InvokeAsync(StateHasChanged).Wait();
+                });
+            });
+        }
+        else {
+            // Redirect to home page
+            NavigationManager.NavigateTo("/");
+        }
+    }
+    
+}

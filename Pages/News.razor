@@ -1,0 +1,64 @@
+@page "/News"
+@using CompassApi
+@using GPSCompassClient.Data
+@using System.Diagnostics
+@inject IJSRuntime JSRuntime
+
+<CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
+<DashGui Page="DashGui.CurrentPage.News" Title="News">
+    @if (_newsItems != null) {
+        @foreach (CompassNewsItem item in _newsItems) {
+            <div class="border-light p-2 rounded" style="background-color: rgba(84,86,96,0.95)">
+                <h4>@((MarkupString) item.Title)</h4>
+                <p style="font-size: small">@((MarkupString) item.Content)</p>
+                <p>
+                    <img class="circle-image" width="50" height="50" src="@item.SenderProfilePictureUrl" alt="@item.SenderUsername's profile picture"/>
+                    <em>@((MarkupString) item.SenderUsername)</em>
+                </p>
+            </div>
+            <br/>
+        }
+        <div id="loadmorebuttoncontainer"><button class="btn btn-success" @onclick="LoadMore" id="loadmorebutton">Load More</button></div>
+    }
+    else {
+        <h4>Loading...</h4>
+    }
+</DashGui>
+
+@code {
+    private CompassNewsItem[]? _newsItems;
+    private int _loadedNewsItems;
+    private CachedCompassClient? _compassClient;
+
+    private void OnLogin(CachedCompassClient client) {
+        const int amountToLoad = 5;
+        _compassClient = client;
+        Task<IEnumerable<CompassNewsItem>> getNewsItems = client.GetNewsItems(0, amountToLoad);
+        Task _ = getNewsItems.ContinueWith(task => {
+            _loadedNewsItems = amountToLoad;
+            _newsItems = task.Result.ToArray();
+            InvokeAsync(StateHasChanged).Wait();
+        });
+    }
+
+    private async void LoadMore() {
+        const int amountToLoad = 3;
+        Debug.Assert(_compassClient != null);  // This can only be ran if new items are not null and for that to be true the client must not be null
+        Task<IEnumerable<CompassNewsItem>> getNewsItems = _compassClient.GetNewsItems(_loadedNewsItems, amountToLoad);
+        
+        HtmlInteractor htmlInteractor = new(JSRuntime);
+        await htmlInteractor.SetHtml("loadmorebutton", "Loading...");
+        
+        Task _ = getNewsItems.ContinueWith(async task => {
+            _loadedNewsItems += amountToLoad;
+            CompassNewsItem[] results = task.Result.ToArray();
+            if (results.Length == 0) {
+                await htmlInteractor.SetHtml("loadmorebuttoncontainer", "");
+                return;
+            }
+            _newsItems = _newsItems!.Concat(results).ToArray();
+            await htmlInteractor.SetHtml("loadmorebutton", "Load More");
+            InvokeAsync(StateHasChanged).Wait();
+        });
+    }
+}

@@ -2,6 +2,7 @@ using Microsoft.JSInterop;
 
 namespace GPSCompassClient.Data; 
 
+// Why the hell is interactor not a word? It feels like it should be.
 public class HtmlInteractor {
     private readonly IJSRuntime _jsRuntime;
     

@@ -6,23 +6,76 @@
 
 <DashGui Page="DashGui.CurrentPage.Profile" Title="Profile">
     
-    <div class="text-center">
-        <img src="@_user.PhotoUrl" alt="A picture of the below named user"/>
-        <h3>@_user.FullName</h3>
-        <h4>Student Code: @_user.StudentCode</h4>
-        <h4>Email: @_user.Email</h4>
-        <h4>House: @_user.House</h4>
-        <h4>HomeGroup: @_user.HomeGroup</h4>
-        <h4>Year: @_user.YearLevel</h4>
-        <h4>School: <a href="https://@_user.SchoolCompassUrl">@_user.SchoolCompassUrl</a></h4>
-        
-        <h4>Attendance:</h4>
-        @foreach (CompassUserPresenceEntry? entry in _user.Presence) {
-            <h5>@entry.TimePeriodName (@entry.TimePeriodStart.ToShortTimeString() - @entry.TimePeriodEnd.ToShortTimeString()): 
-                @(entry.Present ? "Present" : "Not Present") (@entry.StatusName)</h5>
-        }
+    <div class="row">
+       <div class="col-md-3 border-right">
+          <div class="d-flex flex-column align-items-center text-center p-3 py-5"><img alt="A photo of @_user.FullName" class="rounded" width="150px" src="@_user.PhotoUrl">
+             <h3>@_user.FullName</h3></div>
+       </div>
+       <div class="col-md-5 border-right">
+          <div class="p-3 py-5">
+             <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="text-right">Personal Information</h4>
+             </div>
+             <div class="row mt-2">
+                <div class="col-md-6"><label class="labels">Student Code</label><input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.StudentCode"></div>
+             </div>
+             <div class="row mt-3">
+                <div class="col-md-12">
+                   <label class="labels">Email</label>
+                   <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.Email">
+                </div>
+             </div>
+             <div class="row mt-3">
+                <div class="col-md-12">
+                   <label class="labels">Preferred First Name</label>
+                   <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.PreferredFirstName">
+                </div>
+             </div>
+             <div class="row mt-3">
+                <div class="col-md-12">
+                   <label class="labels">Preferred Last Name</label>
+                   <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.PreferredLastName">
+                </div>
+             </div>
+
+             <div style="padding-top: 20px"></div>
+             <hr/>
+             <h4>Class Information</h4>
+             <div class="row mt-3">
+                 <div class="col-md-12">
+                    <label class="labels">School</label>
+                    <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.SchoolWebsite">
+                 </div>
+              </div>
+             <div class="row mt-3">
+                <div class="col-md-12">
+                   <label class="labels">House</label>
+                   <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.House">
+                </div>
+             </div>
+             <div class="row mt-3">
+                <div class="col-md-12">
+                   <label class="labels">Home Group</label>
+                   <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.HomeGroup">
+                </div>
+             </div>
+             <div class="row mt-3">
+                 <div class="col-md-12">
+                    <label class="labels">Year Level</label>
+                    <input readonly style="background-color: rgb(34, 34, 34); color: #ffffff" type="text" class="form-control" placeholder="Unknown" value="@_user.YearLevel">
+                 </div>
+              </div>
+             <div style="padding-top: 20px"></div>
+             <hr/>
+             
+             <div class="row mt-3">
+                <div class="col-md-6"><label class="labels">ID</label><input type="text" style="background-color: rgb(34, 34, 34); color: #ffffff" class="form-control" placeholder="ID" value="@_user.Id" readonly></div>
+                <div class="col-md-6"><label class="labels">Year Level ID</label><input type="text" style="background-color: rgb(34, 34, 34); color: #ffffff" class="form-control" placeholder="Normal" value="@_user.YearLevelId" readonly></div>
+             </div>
+             
+          </div>
+       </div>
     </div>
-    
 </DashGui>
 
 @code {
@@ -30,10 +83,8 @@
         FullName = "Loading...",
         Presence = Array.Empty<CompassUserPresenceEntry>()
     };
-    private CompassNewsItem[] _newsItems = Array.Empty<CompassNewsItem>();
-    private CompassClass[] _classesToday = Array.Empty<CompassClass>();
-    
-    private async void OnLogin(CachedCompassClient client) {
+
+   private async void OnLogin(CachedCompassClient client) {
         _user = await client.GetUserProfile();
         StateHasChanged();
     }

@@ -115,7 +115,7 @@
         }
         
         CompassClient client = new(prefix, s => {
-            Console.WriteLine(s);
+            Console.WriteLine("[Compass Client] " + s);
             return Task.CompletedTask;
         });
         bool success;

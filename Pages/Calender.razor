@@ -15,16 +15,22 @@
         <!-- Controls to select the date -->
         <div class="row">
             <div class="col-md-4">
-                <div class="form-group">
-                    <label for="date">Date</label>
-                    <input type="date" class="form-control" id="date" value="@_date.ToString("yyyy-MM-dd")" @onchange="DateChange">
+                @* <div class="form-group"> *@
+                @*     <label for="date">Date</label> *@
+                @*     <input type="date" class="form-control" id="date" value="@_date.ToString("yyyy-MM-dd")" @onchange="DateChange"> *@
+                @* </div> *@
+                <div class="input-group mb-3">
+                  <span class="input-group-text" id="basic-addon1">Date</span>
+                  <input type="date" class="form-control" id="date" value="@_date.ToString("yyyy-MM-dd")" @onchange="DateChange">
                 </div>
             </div>
         </div>
         
+        <br>
+        
         <div class="row">
             @foreach((DateTime, CompassClass[]) day in _classesOnEachDay) {
-                <div class="col-md-2">
+                <div class="col-md-2 border border-light">
                     <h3>@day.Item1.DayOfWeek @(day.Item1.Day)@GetOrdinalPrefix(day.Item1.Day)</h3>
                     <ul>
                         @if (day.Item2.Length == 0) {
@@ -189,7 +195,13 @@
             CompassClass[] classes = (await client.GetClasses(true, day, day, 100)).ToArray();
             
             // Replace the day in the list with the new classes which contain more details
-            _classesOnEachDay = _classesOnEachDay!.Select(c => c.Item1 == day ? (day, classes) : c).ToArray();
+            if (_classesOnEachDay == null) {
+                // Add the day to the list if it doesn't exist
+                _classesOnEachDay = new[] {(day, classes)};
+            }
+            else {
+                _classesOnEachDay = _classesOnEachDay.Select(c => c.Item1 == day ? (day, classes) : c).ToArray();
+            }
             StateHasChanged();
         }
         _isWorking = false;

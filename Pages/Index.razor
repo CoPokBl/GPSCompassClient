@@ -18,21 +18,6 @@
                     @switch (item.ActivityType) {
                         case CompassClassType.Normal:
                         case CompassClassType.Unknown: {
-                            @* <div class="border-light p-2 rounded" style="background-color: rgba(84,86,96,0.95)"> *@
-                            @*     <h4> *@
-                            @*         <div class="row"> *@
-                            @*             <div class="col-md-6"> *@
-                            @*                 <a href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a> *@
-                            @*             </div> *@
-                            @*             <div class="col-md-6 text-end"> *@
-                            @*                 <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>                       *@
-                            @*             </div> *@
-                            @*         </div> *@
-                            @*     </h4> *@
-                            @*     <p style="font-size: small">Room: @((MarkupString) item.HtmlRoom)</p> *@
-                            @*     <p style="font-size: small">Teacher: @((MarkupString) item.Teacher)</p> *@
-                            @*     <p style="font-size: small">Length: @((item.EndTime - item.StartTime).ToFormat("{h} hrs {m} min"))</p> *@
-                            @* </div> *@
                             string hoverText = $"<p style=\"font-size: small\">Room: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
                             <div class="border-light p-2 rounded" style="background-color: rgba(84,86,96,0.95)">
                                 <h6 style="font-size: 15px">
@@ -107,6 +92,9 @@
                     }
                     
                     <br/>
+                }
+                @if (_classesToday.Length == 0) {
+                    <h4>No Scheduled Activities</h4>
                 }
             }
             else {

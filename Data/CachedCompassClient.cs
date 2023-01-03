@@ -58,8 +58,10 @@ public class CachedCompassClient : CompassClient {
         }
         
         // If any of the dates aren't null, we can't cache the result because it will be different
-
         Stopwatch stopwatch = Stopwatch.StartNew();
+        Timer timer = new(_ => {
+            Console.WriteLine("GetClasses took too long.");
+        }, new object(), new TimeSpan(0, 0, 10), Timeout.InfiniteTimeSpan);
         string existingClasses = await GetLocalStorage("cache_classes_" + getMoreInfo);
         if (existingClasses != "") {
             try {

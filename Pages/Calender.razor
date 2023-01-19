@@ -2,7 +2,8 @@
 @using CompassApi
 @using GeneralPurposeLib
 @using GPSCompassClient.Data
-@inject IJSRuntime JSRuntime
+@using Newtonsoft.Json
+@inject IJSRuntime JsRuntime
 
 <CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
 
@@ -30,93 +31,105 @@
         
         <div class="row">
             @foreach((DateTime, CompassClass[]) day in _classesOnEachDay) {
-                <div class="col-md-2 border border-light">
-                    <h3>@day.Item1.DayOfWeek @(day.Item1.Day)@GetOrdinalPrefix(day.Item1.Day)</h3>
-                    <ul>
-                        @if (day.Item2.Length == 0) {
-                            <p>No classes</p>
+                <div class="col-2 border border-light"> @* col-md-2 border border-light *@
+                    <h4>@day.Item1.DayOfWeek @(day.Item1.Day)@GetOrdinalPrefix(day.Item1.Day)</h4>
+                    @if (day.Item2.Length == 0) {
+                        <p>No classes</p>
+                    }
+                    @{
+                        DateTime? lastClassEnd = null;
+                    }
+                    @foreach (CompassClass item in day.Item2.Reverse()) {
+                        if (lastClassEnd != null && item.StartTime - lastClassEnd.Value > TimeSpan.FromMinutes(2)) {
+                            // There is a gap between this class and the last one   @((item.StartTime - lastClassEnd.Value).Minutes/2)
+                            <div style="" class="p-2"></div>
+                            @* <hr/> *@
                         }
-                        @foreach (CompassClass item in day.Item2.Reverse()) {
-                            @switch (item.ActivityType) {
-                                case CompassClassType.Normal:
-                                case CompassClassType.Unknown: {
-                                    string hoverText = $"<p style=\"font-size: small\">Room: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
-                                    <div class="border-light p-2 rounded" style="background-color: rgba(84,86,96,0.95)">
-                                        <h6 style="font-size: 10px">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <Tooltip Text="@hoverText">
-                                                        <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
-                                                    </Tooltip>
-                                                </div>
-                                                <div class="col-md-6 text-end">
-                                                    <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
-                                                </div>
+                        int sizeOfBox = (int)(((item.EndTime - item.StartTime).TotalMinutes)*1.3);
+                        sizeOfBox = (item.EndTime - item.StartTime).TotalMinutes < 30 ? 40 : 60;
+                        // if (sizeOfBox < 35) {
+                        //     sizeOfBox = 35;
+                        // }
+                        @switch (item.ActivityType) {
+                            case CompassClassType.Normal:
+                            case CompassClassType.Unknown: {
+                                string hoverText = $"<p style=\"font-size: small\">Room: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
+                                <div class="border-light p-2 rounded" style="background-color: @(_classColours!.ContainsKey(item.Id) ? _classColours[item.Id] : "rgba(84,86,96,0.95)"); height: @(sizeOfBox)px"> @* rgba(84,86,96,0.95) *@
+                                    <h6 style="font-size: 10px">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <Tooltip Text="@hoverText">
+                                                    <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
+                                                </Tooltip>
                                             </div>
-                                        </h6>
-
-                                    </div>
-                                    break;
-                                }
-
-                                case CompassClassType.Exempt:
-                                    <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
-                                        <h6 style="font-size: 15px">Exempt - User is exempt from activities</h6>
-                                    </div>
-                                    break;
-
-                                case CompassClassType.WeekNumber:
-                                    <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
-                                        <h6 style="font-size: 15px">@item.Id</h6>
-                                    </div>
-                                    break;
-
-                                case CompassClassType.DueTask: {
-                                    string hoverText = $"<p style=\"font-size: small\">Due In: {Extensions.ToFormat(item.EndTime.ToLocalTime() - DateTime.Now, "{d} days {h} hrs {m} min")}</p>";
-                                    <div class="border-light p-2 rounded" style="background-color: rgba(187,67,67,0.95)">
-                                        <h6 style="font-size: 10px">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <Tooltip Text="@hoverText">
-                                                        <h6 style="font-size: 10px">@item.Id</h6>
-                                                    </Tooltip>
-                                                </div>
-                                                <div class="col-md-6 text-end">
-                                                    <em>Due: @item.EndTime.ToShortTimeString()</em>
-                                                </div>
+                                            <div class="col-md-6 text-end">
+                                                <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
                                             </div>
-                                        </h6>
-                                    </div>
-                                    break;
-                                }
-
-                                case CompassClassType.Event: {
-                                    string hoverText = $"<p style=\"font-size: small\">Location: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
-                                    <div class="border-light p-2 rounded" style="background-color: rgba(87,105,77,0.95)">
-                                        <h6 style="font-size: 10px">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <Tooltip Text="@hoverText">
-                                                        <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
-                                                    </Tooltip>
-                                                </div>
-                                                <div class="col-md-6 text-end">
-                                                    <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
-                                                </div>
-                                            </div>
-                                        </h6>
-
-                                    </div>
-                                    break;
-                                }
-                                    
-                                default:
-                                    throw new ArgumentOutOfRangeException();
+                                        </div>
+                                    </h6>
+                                    <div style="padding-top: @(sizeOfBox)px"></div>
+                                </div>
+                                break;
                             }
 
-                            <br/>
+                            case CompassClassType.Exempt:
+                                <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
+                                    <h6 style="font-size: 15px">Exempt - User is exempt from activities</h6>
+                                </div>
+                                break;
+
+                            case CompassClassType.WeekNumber:
+                                <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
+                                    <h6 style="font-size: 15px">@item.Id</h6>
+                                </div>
+                                break;
+
+                            case CompassClassType.DueTask: {
+                                string hoverText = $"<p style=\"font-size: small\">Due In: {Extensions.ToFormat(item.EndTime.ToLocalTime() - DateTime.Now, "{d} days {h} hrs {m} min")}</p>";
+                                <div class="border-light p-2 rounded" style="background-color: rgba(187,67,67,0.95)">
+                                    <h6 style="font-size: 10px">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <Tooltip Text="@hoverText">
+                                                    <h6 style="font-size: 10px">@item.Id</h6>
+                                                </Tooltip>
+                                            </div>
+                                            <div class="col-md-6 text-end">
+                                                <em>Due: @item.EndTime.ToShortTimeString()</em>
+                                            </div>
+                                        </div>
+                                    </h6>
+                                </div>
+                                break;
+                            }
+
+                            case CompassClassType.Event: {
+                                string hoverText = $"<p style=\"font-size: small\">Location: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
+                                <div class="border-light p-2 rounded" style="background-color: rgba(87,105,77,0.95)">
+                                    <h6 style="font-size: 10px">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <Tooltip Text="@hoverText">
+                                                    <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
+                                                </Tooltip>
+                                            </div>
+                                            <div class="col-md-6 text-end">
+                                                <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
+                                            </div>
+                                        </div>
+                                    </h6>
+
+                                </div>
+                                break;
+                            }
+                                    
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
-                    </ul>
+
+                        <div class="p-1"></div>
+                        lastClassEnd = item.EndTime;
+                    }
                 </div>
             }
         </div>
@@ -129,10 +142,18 @@
     private bool _continueWorking = true;
     private bool _isWorking;
     private CachedCompassClient? _client;
+    private Dictionary<string, string>? _classColours;
 
-    private void OnLogin(CachedCompassClient client) {
-        Console.WriteLine("Logged in");
+    private async void OnLogin(CachedCompassClient client) {
+        HtmlInteractor interactor = new(JsRuntime);
+        
+        await interactor.Log("Logged in");
         _client = client;
+
+        Cookie cookie = new(JsRuntime);
+        string classColourJson = await cookie.GetValue("classColours");
+        _classColours = string.IsNullOrWhiteSpace(classColourJson) ? new Dictionary<string, string>() : JsonConvert.DeserializeObject<Dictionary<string, string>>(classColourJson);
+        
         QuickLoad(client);
         SlowLoad(client);  // We load the data in two parts so that the user can see the page load quicker
     }
@@ -151,8 +172,8 @@
     }
 
     private async void DateChange() {
-        Console.WriteLine("Date changed");
-        HtmlInteractor interactor = new(JSRuntime);
+        HtmlInteractor interactor = new(JsRuntime);
+        await interactor.Log("Date changed");
         _date = DateTime.Parse(await interactor.GetValue("date"));
         _continueWorking = false;
         while (_isWorking) {
@@ -166,7 +187,7 @@
         SlowLoad(_client!);
     }
 
-    private async void QuickLoad(CompassClient client) {
+    private async void QuickLoad(CachedCompassClient client) {
         _isWorking = true;
         DateTime firstDayOfWeek = _date.AddDays(1-(int) _date.DayOfWeek);
         DateTime lastDayOfWeek = firstDayOfWeek.AddDays(4);
@@ -182,7 +203,7 @@
         _isWorking = false;
     }
     
-    private async void SlowLoad(CompassClient client) {
+    private async void SlowLoad(CachedCompassClient client) {
         _isWorking = true;
         DateTime firstDayOfWeek = _date.AddDays(1-(int)_date.DayOfWeek);
         DateTime lastDayOfWeek = firstDayOfWeek.AddDays(4);

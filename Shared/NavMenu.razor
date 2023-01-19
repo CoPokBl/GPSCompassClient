@@ -1,5 +1,5 @@
 ﻿@using GPSCompassClient.Data
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 
 <header class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow" style="background-color: rgba(54,55,62,0.95)">
@@ -18,7 +18,7 @@
 @code {
 
   private async void SignOut() {
-    Cookie cookie = new(JSRuntime);
+    Cookie cookie = new(JsRuntime);
     await cookie.SetValue("state", "", 1);
     NavigationManager.NavigateTo("/", true);
   }

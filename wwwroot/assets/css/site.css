@@ -104,12 +104,12 @@ a, .btn-link {
     text-decoration: none;
 }
 .blackLink:visited {
-    color: deepskyblue;
+    color: greenyellow;
     background-color: transparent;
     text-decoration: none;
 }
 .blackLink:active {
-    color: yellow;
+    color: greenyellow;
     background-color: transparent;
 }
 

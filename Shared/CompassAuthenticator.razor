@@ -4,7 +4,7 @@
 @using GeneralPurposeLib
 @using GPSCompassClient.Data
 
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 
 
@@ -24,9 +24,14 @@
             return;
         }
 
-        Cookie cookie = new(JSRuntime);
+        HtmlInteractor htmlInteractor = new(JsRuntime);
+        Cookie cookie = new(JsRuntime);
+        
+        await htmlInteractor.Log("Running authenticator");
+        
         string state = await cookie.GetValue("state");
         if (string.IsNullOrWhiteSpace(state)) {
+            await htmlInteractor.Log("State was null or empty");
             NotLoggedIn();
             return;
         }
@@ -34,7 +39,7 @@
             state = Encoding.UTF8.GetString(Convert.FromBase64String(state.Replace('~', '=')));
         }
         catch (Exception) {
-            Console.WriteLine("Invalid state");
+            await htmlInteractor.Log("State was invalid base64 (Ending in ~ not =)");
             NotLoggedIn();
             return;
         }
@@ -44,20 +49,25 @@
             compassLoginState = JsonConvert.DeserializeObject<CompassLoginState>(state).ThrowIfNull();
         }
         catch (Exception) {
+            await htmlInteractor.Log("State was invalid object or was null");
             NotLoggedIn();
             return;
         }
         
-        CachedCompassClient compassClient = new(JSRuntime, compassLoginState);
+        CachedCompassClient compassClient = new(JsRuntime, compassLoginState);
+        CompassUser user;
         try {
-            await compassClient.GetUserProfile();
+            user = await compassClient.GetUserProfile(false);  // Don't use cache so we can actually work out it if works
+            user.ThrowIfNull();
         }
         catch (Exception e) {
-            Console.WriteLine("State didn't work: " + e);
+            await htmlInteractor.Log("State could not be used to obtain user profile: " + e.Message);
             NotLoggedIn();
             return;
         }
         
+        await htmlInteractor.Log("Reported user: " + user.FullName);
+        await htmlInteractor.Log("No authentication failures were detected, giving login signal to parent");
         OnLogin(compassClient);
     }
 

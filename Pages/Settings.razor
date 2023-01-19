@@ -1,0 +1,27 @@
+@page "/Settings"
+@using GPSCompassClient.Data
+@inject IJSRuntime JsRuntime
+
+<h3>Settings</h3>
+
+<CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
+
+<DashGui Page="DashGui.CurrentPage.Dashboard" Title="Dashboard">
+    
+    
+    <h3 style="background-color: rgba(254,255,8,0.95)">
+        Class Colours
+    </h3>
+    
+    
+    
+</DashGui>
+
+@code {
+    
+
+    private async void OnLogin(CachedCompassClient client) {
+        
+    }
+    
+}

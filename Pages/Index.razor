@@ -2,6 +2,7 @@
 @using CompassApi
 @using GeneralPurposeLib
 @using GPSCompassClient.Data
+@inject IJSRuntime JsRuntime
 
 <CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
 
@@ -131,15 +132,19 @@
     private CompassNewsItem[]? _newsItems;
     private CompassClass[]? _classesToday;
 
-    private void OnLogin(CachedCompassClient client) {
+    private async void OnLogin(CachedCompassClient client) {
+        HtmlInteractor htmlInteractor = new(JsRuntime);
+        await htmlInteractor.Log("Home page login signal received");
+        
         Task<IEnumerable<CompassNewsItem>> getNewsItems = client.GetNewsItems(0, 5);
-        Task _ = getNewsItems.ContinueWith(task => {
+        Task _ = getNewsItems.ContinueWith(async task => {
             _newsItems = task.Result.ToArray();
+            await htmlInteractor.Log("Obtained news items, reloading dom");
             InvokeAsync(StateHasChanged).Wait();
         });
         
         Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false);
-        Task unused = getClassesToday.ContinueWith(task => {
+        Task unused = getClassesToday.ContinueWith( async task => {
             _classesToday = task.Result.ToArray();
             // Sort all classes today so that the classes with activityType == Normal are at the top
             Array.Sort(_classesToday, (a, b) => {
@@ -151,11 +156,12 @@
                 }
                 return -1;
             });
+            await htmlInteractor.Log("Obtained and sorted classes with minimal information, reloading dom");
             InvokeAsync(StateHasChanged).Wait();
             
             // Get classes again but with more detail
             Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses();
-            Task unused = getClassesToday.ContinueWith(task => {
+            Task unused = getClassesToday.ContinueWith(async task => {
                 _classesToday = task.Result.ToArray();
                 // Sort all classes today so that the classes with activityType == Normal are at the top
                 Array.Sort(_classesToday, (a, b) => {
@@ -167,6 +173,7 @@
                     }
                     return -1;
                 });
+                await htmlInteractor.Log("Obtained and sorted classes with detailed information, reloading dom");
                 InvokeAsync(StateHasChanged).Wait();
             });
         });

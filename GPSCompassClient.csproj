@@ -9,12 +9,19 @@
     <ItemGroup>
       <PackageReference Include="GeneralPurposeLib" Version="1.1.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+      <PackageReference Include="YamlDotNet" Version="12.3.1" />
     </ItemGroup>
 
     <ItemGroup>
       <Reference Include="CompassApi">
         <HintPath>CompassApi.dll</HintPath>
       </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Localisations\*">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

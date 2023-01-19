@@ -85,7 +85,7 @@ public class Cookie {
     }
 
     private async Task SetCookie(string value) {
-        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{value}\"");
+        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = '{value}'");
     }
 
     private async Task<string> GetCookie() {

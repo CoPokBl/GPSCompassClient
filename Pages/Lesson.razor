@@ -1,9 +1,12 @@
 @page "/Lesson"
 @using CompassApi
-@using GeneralPurposeLib
+@using GPSCompassClient.Data
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Primitives
+@using Newtonsoft.Json
+@using Extensions = GeneralPurposeLib.Extensions
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
 
 <CompassAuthenticator OnLogin="OnLogin"></CompassAuthenticator>
 
@@ -26,8 +29,19 @@
                         <p>ID: @_lesson.Id</p>
                         <p>Location: @((MarkupString) _lesson.Room)</p>
                         <p>Time: @_lesson.StartTime.ToShortDateString() @_lesson.StartTime.ToShortTimeString() - @_lesson.EndTime.ToShortDateString() @_lesson.EndTime.ToShortTimeString()</p>
-                        <p>Length: @((_lesson.EndTime - _lesson.StartTime).ToFormat("{h} hrs {m} mins"))</p>
+                        <p>Length: @(Extensions.ToFormat((_lesson.EndTime - _lesson.StartTime), "{h} hrs {m} mins"))</p>
                     }
+                </div>
+            </div>
+            
+            <div class="col-3">
+                <div class="rounded-3 border border-white p-1">
+                    <h4>Class Colour</h4>
+                </div>
+                <div class="rounded-3 border border-white p-3 text-start" style="background-color: rgba(115,125,129,0.95); color: black">
+                    Select a colour for the class:
+                    <input type="color" id="classcolour"/>
+                    <button @onclick="UpdateMyLove">Update</button>
                 </div>
             </div>
             
@@ -61,7 +75,7 @@
                         @foreach (CompassLearningTask task in _tasks) {
                             <div class="border-light border p-1 rounded" style="background-color: rgba(179,183,206,0.95)">
                                 <h6>@task.Name</h6>
-                                <p>Due: @task.DueDate.ToLocalTime()</p>
+                                <p>Due: @(task.DueDate.ToLocalTime() > DateTime.Today.AddYears(5) ? "Never" : task.DueDate.ToLocalTime())</p>
                                 @((MarkupString)GetDueText(task))
                             </div>
                             <br/>
@@ -79,6 +93,20 @@
 @code {
     private CompassLesson? _lesson;
     private CompassLearningTask[]? _tasks;
+
+    private async void UpdateMyLove() {
+        HtmlInteractor needle = new(JsRuntime);
+
+        string colour = await needle.GetValue("classcolour");
+        await needle.Log(colour);
+
+        Cookie cookie = new(JsRuntime);
+        
+        string classColourJson = await cookie.GetValue("classColours");
+        Dictionary<string, string> classColours = classColourJson == "" ? new Dictionary<string, string>() : JsonConvert.DeserializeObject<Dictionary<string, string>>(classColourJson)!;
+        classColours[_lesson!.Id] = colour;
+        await cookie.SetValue("classColours", JsonConvert.SerializeObject(classColours));
+    }
 
     private string GetDueText(CompassLearningTask task) {
         
@@ -101,8 +129,10 @@
         if (task.DueDate.ToLocalTime() < DateTime.Now.AddDays(1)) {
             colorClassString = "text-warning";
         }
-        
-        return $"<p class=\"{colorClassString}\">Due in {task.DueDate.ToLocalTime().Subtract(DateTime.Now).ToFormat("{d} days {h} hrs {m} mins")}</p>";
+
+        return task.DueDate > DateTime.Today.AddYears(5) ? 
+            $"<p class=\"{colorClassString}\">No Due Date</p>" : 
+            $"<p class=\"{colorClassString}\">Due in {Extensions.ToFormat(task.DueDate.ToLocalTime().Subtract(DateTime.Now), "{d} days {h} hrs {m} mins")}</p>";
     }
 
     private async void OnLogin(CompassClient client) {
@@ -116,6 +146,18 @@
                 _lesson = task.Result ?? new CompassLesson {
                     Name = "Lesson Not Found"
                 };
+                
+                
+                HtmlInteractor interactor = new(JsRuntime);
+                Cookie cookie = new(JsRuntime);
+        
+                string classColourJson = cookie.GetValue("classColours").Result;
+                Dictionary<string, string> classColours = classColourJson == "" ? new Dictionary<string, string>() : JsonConvert.DeserializeObject<Dictionary<string, string>>(classColourJson)!;
+                if (classColours.ContainsKey(_lesson.Id)) {
+                    interactor.SetValue("classcolour", classColours[_lesson.Id]).Wait();
+                    interactor.Log("Set class colour").Wait();
+                }
+
                 InvokeAsync(StateHasChanged).Wait();
                 
                 Task<IEnumerable<CompassLearningTask>> getLearningTasks = client.GetLearningTasksByClass(_lesson.ActivityId);

@@ -114,9 +114,8 @@
             return;
         }
         
-        CompassClient client = new(prefix, s => {
-            Console.WriteLine("[Compass Client] " + s);
-            return Task.CompletedTask;
+        CompassClient client = new(prefix, async s => {
+            await interactor.Log("[Compass Client] " + s);
         });
         bool success;
         try {
@@ -135,7 +134,7 @@
         // Login successful
         string jsonState = JsonConvert.SerializeObject(client.GetLoginState());
         jsonState = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonState)).Replace('=', '~');
-        Console.WriteLine("Saving state: " + jsonState);
+        await interactor.Log("Saving state: " + jsonState);
 
         Cookie cookie = new(JsRuntime);
         await cookie.SetValue("state", jsonState, _rememberMe ? 8760 : 1);

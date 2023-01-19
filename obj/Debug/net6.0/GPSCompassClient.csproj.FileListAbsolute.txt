@@ -29,3 +29,4 @@
 /media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/bin/Debug/net6.0/GeneralPurposeLib.dll
 /media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/bin/Debug/net6.0/Newtonsoft.Json.dll
 /media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/obj/Debug/net6.0/GPSCompassClient.csproj.CopyComplete
+/media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/bin/Debug/net6.0/YamlDotNet.dll

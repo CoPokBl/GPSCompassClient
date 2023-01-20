@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "NN3IvZ4LoHqOz9HUWSO+L4M7XNQk3uYhkW7Keo3U1mUK3Lzj6Hi5EU2TIZf1hJz0wBZQBY63Tfc5fDcRel/8iA==",
+  "dgSpecHash": "Sxv3mQwdyANjU2raULyff0prUpmxUprwCb12eri8/YT0FYexsTWn4tOamKv4sxvs6a0NZxlwSqqeeHVfQ7uKMw==",
   "success": true,
   "projectFilePath": "/media/copokbl/Big Boi/Documents/Coding/C#/GPSCompassClient/GPSCompassClient.csproj",
   "expectedPackageFiles": [
-    "/home/copokbl/.nuget/packages/generalpurposelib/1.1.2/generalpurposelib.1.1.2.nupkg.sha512",
+    "/home/copokbl/.nuget/packages/generalpurposelib/1.2.0/generalpurposelib.1.2.0.nupkg.sha512",
     "/home/copokbl/.nuget/packages/newtonsoft.json/13.0.2/newtonsoft.json.13.0.2.nupkg.sha512",
     "/home/copokbl/.nuget/packages/yamldotnet/12.3.1/yamldotnet.12.3.1.nupkg.sha512"
   ],

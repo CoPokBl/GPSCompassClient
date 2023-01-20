@@ -2,7 +2,7 @@
 
 @code {
     [Parameter]
-    public string Script { get; set; }
+    public string? Script { get; set; }
     
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         // invoke script loader

@@ -32,19 +32,18 @@
                         <p>Length: @(Extensions.ToFormat((_lesson.EndTime - _lesson.StartTime), "{h} hrs {m} mins"))</p>
                     }
                 </div>
-            </div>
-            
-            <div class="col-3">
+                
+                <br/>
                 <div class="rounded-3 border border-white p-1">
                     <h4>Class Colour</h4>
                 </div>
                 <div class="rounded-3 border border-white p-3 text-start" style="background-color: rgba(115,125,129,0.95); color: black">
                     Select a colour for the class:
-                    <input type="color" id="classcolour"/>
-                    <button @onclick="UpdateMyLove">Update</button>
+                    <input type="color" id="classcolour" @onchange="UpdateColour"/>
+                    @* <button class="btn btn-success" @onclick="UpdateColour">Update</button> *@
                 </div>
             </div>
-            
+
             <div class="col-6">
                 <div class="rounded-3 border border-white p-1">
                     <h4>Lesson Plan</h4>
@@ -94,7 +93,7 @@
     private CompassLesson? _lesson;
     private CompassLearningTask[]? _tasks;
 
-    private async void UpdateMyLove() {
+    private async void UpdateColour() {
         HtmlInteractor needle = new(JsRuntime);
 
         string colour = await needle.GetValue("classcolour");
@@ -135,7 +134,7 @@
             $"<p class=\"{colorClassString}\">Due in {Extensions.ToFormat(task.DueDate.ToLocalTime().Subtract(DateTime.Now), "{d} days {h} hrs {m} mins")}</p>";
     }
 
-    private async void OnLogin(CompassClient client) {
+    private void OnLogin(CompassClient client) {
         
         // Get query string parameters
         Dictionary<string, StringValues> queryParameters = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);

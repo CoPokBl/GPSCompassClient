@@ -1,0 +1,128 @@
+@using CompassApi
+@using GeneralPurposeLib
+@using GPSCompassClient.Data
+@using Newtonsoft.Json
+@inject IJSRuntime JsRuntime
+
+@if (Classes == null || _classColours == null) {
+    <p>Loading...</p>
+}
+else {
+    DateTime? lastClassEnd = null;
+    @foreach (CompassClass item in Classes) {
+        item.ThrowIfNull();
+        if (lastClassEnd != null && item.StartTime - lastClassEnd.Value > TimeSpan.FromMinutes(2) && item.ActivityType != CompassClassType.WeekNumber) {
+            // There is a gap between this class and the last one
+            <div style="" class="p-2"></div>
+        }
+        int sizeOfBox = (item.EndTime - item.StartTime).TotalMinutes < 30 ? 40 : 60;
+        @switch (item.ActivityType) {
+            case CompassClassType.Normal:
+            case CompassClassType.Event:
+            case CompassClassType.Unknown: {
+                
+                <div 
+                    class="border-light p-2 rounded" 
+                    style="
+                        background-color: @(item.ActivityType == CompassClassType.Event ? "rgba(87,105,77,0.95)" : _classColours!.ContainsKey(item.Id) ? _classColours[item.Id] : "rgba(84,86,96,0.95)"); 
+                        height: @(sizeOfBox)px">
+                    <h6 style="font-size: @(10 * Scale)px">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <Tooltip Text="@GetHoverText(item)">
+                                    <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
+                                </Tooltip>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
+                            </div>
+                        </div>
+                    </h6>
+                    <div style="padding-top: @(sizeOfBox)px"></div>
+                </div>
+                break;
+            }
+
+            case CompassClassType.Exempt:
+                <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
+                    <h6 style="font-size: @(15 * Scale)px">Exempt - User is exempt from activities</h6>
+                </div>
+                break;
+
+            case CompassClassType.WeekNumber:
+                <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
+                    <h6 style="font-size: @(15 * Scale)px">@item.Id</h6>
+                </div>
+                break;
+
+            case CompassClassType.DueTask: {
+                string hoverText = $"<p style=\"font-size: small\">Due In: {Extensions.ToFormat((item.EndTime.ToLocalTime() - DateTime.Now), "{d} days {h} hrs {m} min")}</p>";
+                <div class="border-light rounded" style="background-color: rgba(187,67,67,0.95); padding-top: 5px; padding-left: 5px; padding-right: 5px;">
+                    <h6 style="font-size: @(10 * Scale)px">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <Tooltip Text="@hoverText">
+                                    <h6 style="font-size: 10px">@item.Id</h6>
+                                </Tooltip>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <em>Due: @item.EndTime.ToShortTimeString()</em>
+                            </div>
+                        </div>
+                    </h6>
+                </div>
+                break;
+            }
+
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        <div class="p-1"></div>
+        lastClassEnd = item.EndTime;
+    }
+
+    @if (Classes.Length == 0) {
+        <p>No classes</p>
+    }
+}
+
+
+@code {
+    
+    [Parameter]
+    public CompassClass[]? Classes { get; set; }
+
+    [Parameter]
+    public double Scale { get; set; } = 1;
+
+    private Dictionary<string, string>? _classColours;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (!firstRender) {
+            return;
+        }
+        Cookie cookie = new(JsRuntime);
+        HtmlInteractor interactor = new(JsRuntime);
+        await interactor.Log("[Classes Display] Getting class colour settings");
+        string classColourJson = await cookie.GetValue("classColours");
+        _classColours = string.IsNullOrWhiteSpace(classColourJson) ? new Dictionary<string, string>() : JsonConvert.DeserializeObject<Dictionary<string, string>>(classColourJson);
+        await interactor.Log("[Classes Display] Obtained class colour settings");
+    }
+
+    private string GetHoverText(CompassClass item) {
+        string hoverText = 
+            $"<p style=\"font-size: small\">Location: {item.HtmlRoom.ThrowIfNull(new Exception("HtmlRoom"))}</p>" +
+            $"<p style=\"font-size: small\">Teacher: {item.Teacher}</p>" +
+            $"<p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
+        return hoverText;
+    }
+
+    public async void Reload() {
+        HtmlInteractor interactor = new(JsRuntime);
+        await interactor.Log("[Classes Display] Received reload request");
+        await InvokeAsync(StateHasChanged);
+        await interactor.Log("[Classes Display] Reloaded dom upon request");
+    }
+
+}

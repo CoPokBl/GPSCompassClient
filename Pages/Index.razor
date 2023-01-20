@@ -1,6 +1,5 @@
 ﻿@page "/"
 @using CompassApi
-@using GeneralPurposeLib
 @using GPSCompassClient.Data
 @inject IJSRuntime JsRuntime
 
@@ -15,88 +14,7 @@
         <div class="col-md-6">
             <h3>Classes</h3>
             @if (_classesToday != null) {
-                @foreach (CompassClass item in _classesToday) {
-                    @switch (item.ActivityType) {
-                        case CompassClassType.Normal:
-                        case CompassClassType.Unknown: {
-                            string hoverText = $"<p style=\"font-size: small\">Room: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
-                            <div class="border-light p-2 rounded" style="background-color: rgba(84,86,96,0.95)">
-                                <h6 style="font-size: 15px">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <Tooltip Text="@hoverText">
-                                                <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
-                                            </Tooltip>
-                                        </div>
-                                        <div class="col-md-6 text-end">
-                                            <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
-                                        </div>
-                                    </div>
-                                </h6>
-                            </div>
-                            break;
-                        }
-
-                        case CompassClassType.Exempt:
-                            <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
-                                <h6 style="font-size: 15px">Exempt - User is exempt from activities</h6>
-                            </div>
-                            break;
-                            
-                        case CompassClassType.WeekNumber:
-                            <div class="border-light p-2 rounded" style="background-color: rgba(148,150,55,0.95)">
-                                <h6 style="font-size: 15px">@item.Id</h6>
-                            </div>
-                            break;
-
-                        case CompassClassType.DueTask: {
-                            string hoverText = $"<p style=\"font-size: small\">Due In: {Extensions.ToFormat(item.EndTime.ToLocalTime() - DateTime.Now, "{d} days {h} hrs {m} min")}</p>";
-                            <div class="border-light p-2 rounded" style="background-color: rgba(187,67,67,0.95)">
-                                <h6 style="font-size: 15px">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <Tooltip Text="@hoverText">
-                                                <h6 style="font-size: 15px">@item.Id</h6>
-                                            </Tooltip>
-                                        </div>
-                                        <div class="col-md-6 text-end">
-                                            <em>Due: @item.EndTime.ToShortTimeString()</em>
-                                        </div>
-                                    </div>
-                                </h6>
-                            </div>
-                            break;
-                        }
-
-                        case CompassClassType.Event: {
-                            string hoverText = $"<p style=\"font-size: small\">Location: {item.HtmlRoom}</p><p style=\"font-size: small\">Teacher: {item.Teacher}</p><p style=\"font-size: small\">Length: {Extensions.ToFormat(item.EndTime - item.StartTime, "{h} hrs {m} min")}</p>";
-                            <div class="border-light p-2 rounded" style="background-color: rgba(87,105,77,0.95)">
-                                <h6 style="font-size: 15px">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <Tooltip Text="@hoverText">
-                                                <a class="blackLink" href="/lesson?lesson=@item.LessonId">@((MarkupString) (item.Name == "Unknown" || string.IsNullOrWhiteSpace(item.Name) ? item.Id : item.Name))</a>
-                                            </Tooltip>
-                                        </div>
-                                        <div class="col-md-6 text-end">
-                                            <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
-                                        </div>
-                                    </div>
-                                </h6>
-
-                            </div>
-                            break;
-                        }
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                    
-                    <br/>
-                }
-                @if (_classesToday.Length == 0) {
-                    <h4>No Scheduled Activities</h4>
-                }
+                <ClassesDisplay Scale="1.7" @ref="_classesDisplay" Classes="_classesToday"></ClassesDisplay>
             }
             else {
                 <h4>Loading...</h4>
@@ -132,18 +50,21 @@
     private CompassNewsItem[]? _newsItems;
     private CompassClass[]? _classesToday;
 
-    private async void OnLogin(CachedCompassClient client) {
+    private ClassesDisplay? _classesDisplay;
+
+    private async void OnLogin(CompassClient client) {
         HtmlInteractor htmlInteractor = new(JsRuntime);
         await htmlInteractor.Log("Home page login signal received");
-        
+
         Task<IEnumerable<CompassNewsItem>> getNewsItems = client.GetNewsItems(0, 5);
         Task _ = getNewsItems.ContinueWith(async task => {
             _newsItems = task.Result.ToArray();
             await htmlInteractor.Log("Obtained news items, reloading dom");
-            InvokeAsync(StateHasChanged).Wait();
+            await InvokeAsync(StateHasChanged);
         });
-        
-        Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false);
+
+        await htmlInteractor.Log("Date: " + DateTime.Now.AddMonths(-2) + " to " + DateTime.Now.AddMonths(-2).AddDays(1));
+        Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false, DateTime.Now.AddMonths(-2).AddDays(1), DateTime.Now.AddMonths(-2).AddDays(2));
         Task unused = getClassesToday.ContinueWith( async task => {
             _classesToday = task.Result.ToArray();
             // Sort all classes today so that the classes with activityType == Normal are at the top
@@ -156,13 +77,25 @@
                 }
                 return -1;
             });
-            await htmlInteractor.Log("Obtained and sorted classes with minimal information, reloading dom");
-            InvokeAsync(StateHasChanged).Wait();
+            await htmlInteractor.Log($"Obtained and sorted classes with minimal information ({_classesToday.Length}), reloading dom");
+            await InvokeAsync(StateHasChanged);
+            await htmlInteractor.Log("My dom was reloaded");
+            _classesDisplay!.Reload();
+            await htmlInteractor.Log($"Dom reload complete");
+
+            bool yielded = Thread.Yield();
+            await htmlInteractor.Log($"Thread yield attempt success: {yielded}");
             
             // Get classes again but with more detail
-            Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses();
+            Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(true, DateTime.Now.AddMonths(-2).AddDays(1), DateTime.Now.AddMonths(-2).AddDays(2));
             Task unused = getClassesToday.ContinueWith(async task => {
-                _classesToday = task.Result.ToArray();
+                CompassClass[] result = task.Result.ToArray();
+                if (result.Length == 0) {
+                    await htmlInteractor.Log($"Obtained and sorted classes with detailed information, however the length of the result was 0, ignoring.");
+                    return;
+                }
+                
+                _classesToday = result;
                 // Sort all classes today so that the classes with activityType == Normal are at the top
                 Array.Sort(_classesToday, (a, b) => {
                     if (a.ActivityType == b.ActivityType) {
@@ -173,8 +106,9 @@
                     }
                     return -1;
                 });
-                await htmlInteractor.Log("Obtained and sorted classes with detailed information, reloading dom");
-                InvokeAsync(StateHasChanged).Wait();
+                await htmlInteractor.Log($"Obtained and sorted classes with detailed information ({_classesToday.Length}), reloading dom");
+                await InvokeAsync(StateHasChanged);
+                _classesDisplay.Reload();
             });
         });
     }

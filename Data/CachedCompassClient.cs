@@ -12,12 +12,12 @@ public class CachedCompassClient : CompassClient {
     private const int UserProfileCacheTime = 60; // 1 hour
     private const int ClassesCacheTime = 20; // 20 minutes
 
-    public CachedCompassClient(IJSRuntime jsRuntime, string schoolPrefix, Func<string, Task> logger = null) : base(
+    public CachedCompassClient(IJSRuntime jsRuntime, string schoolPrefix, Func<string, Task> logger = null!) : base(
         schoolPrefix, logger) {
         _jsRuntime = jsRuntime;
     }
 
-    public CachedCompassClient(IJSRuntime jsRuntime, CompassLoginState loginState, Func<string, Task> logger = null) :
+    public CachedCompassClient(IJSRuntime jsRuntime, CompassLoginState loginState, Func<string, Task> logger = null!) :
         base(loginState, logger) {
         _jsRuntime = jsRuntime;
     }

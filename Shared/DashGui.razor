@@ -7,31 +7,26 @@
         <ul class="nav flex-column">
           <li class="nav-item">
             <a class="nav-link @GetClass(CurrentPage.Dashboard)" aria-current="page" href="/">
-              <Icon IconName="home"></Icon>
               Dashboard
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link @GetClass(CurrentPage.Calender)" href="/calender">
-              <Icon IconName="user"></Icon>
               Calender
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link @GetClass(CurrentPage.Profile)" href="/profile">
-              <Icon IconName="control-board"></Icon>
               Profile
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link @GetClass(CurrentPage.News)" href="/news">
-              <Icon IconName="control-board"></Icon>
               News
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link @GetClass(CurrentPage.Settings)" href="/settings">
-              <Icon IconName="control-board"></Icon>
               Settings
             </a>
           </li>
@@ -54,7 +49,7 @@
 @code {
   
   [Parameter]
-  public RenderFragment ChildContent { get; set; }
+  public RenderFragment? ChildContent { get; set; }
 
   [Parameter]
   public string Title { get; set; } = "Admin";

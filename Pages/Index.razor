@@ -62,9 +62,8 @@
             await htmlInteractor.Log("Obtained news items, reloading dom");
             await InvokeAsync(StateHasChanged);
         });
-
-        await htmlInteractor.Log("Date: " + DateTime.Now.AddMonths(-2) + " to " + DateTime.Now.AddMonths(-2).AddDays(1));
-        Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false, DateTime.Now.AddMonths(-2).AddDays(1), DateTime.Now.AddMonths(-2).AddDays(2));
+        
+        Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false);
         Task unused = getClassesToday.ContinueWith( async task => {
             _classesToday = task.Result.ToArray();
             // Sort all classes today so that the classes with activityType == Normal are at the top
@@ -87,7 +86,7 @@
             await htmlInteractor.Log($"Thread yield attempt success: {yielded}");
             
             // Get classes again but with more detail
-            Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(true, DateTime.Now.AddMonths(-2).AddDays(1), DateTime.Now.AddMonths(-2).AddDays(2));
+            Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses();
             Task unused = getClassesToday.ContinueWith(async task => {
                 CompassClass[] result = task.Result.ToArray();
                 if (result.Length == 0) {

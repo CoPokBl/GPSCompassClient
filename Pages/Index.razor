@@ -49,10 +49,12 @@
     
     private CompassNewsItem[]? _newsItems;
     private CompassClass[]? _classesToday;
+    private readonly DateTime? _startDate = DateTime.Today.AddMonths(-2).AddDays(1);
+    private readonly DateTime? _endDate = DateTime.Today.AddMonths(-2).AddDays(2);
 
     private ClassesDisplay? _classesDisplay;
 
-    private async void OnLogin(CompassClient client) {
+    private async void OnLogin(CachedCompassClient client) {
         HtmlInteractor htmlInteractor = new(JsRuntime);
         await htmlInteractor.Log("Home page login signal received");
 
@@ -63,7 +65,7 @@
             await InvokeAsync(StateHasChanged);
         });
         
-        Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false);
+        Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses(false, _startDate, _endDate);
         Task unused = getClassesToday.ContinueWith( async task => {
             _classesToday = task.Result.ToArray();
             // Sort all classes today so that the classes with activityType == Normal are at the top
@@ -81,34 +83,39 @@
             await htmlInteractor.Log("My dom was reloaded");
             _classesDisplay!.Reload();
             await htmlInteractor.Log($"Dom reload complete");
-
-            bool yielded = Thread.Yield();
-            await htmlInteractor.Log($"Thread yield attempt success: {yielded}");
+        });
+        
+        // Get classes again but with more detail
+        Task<IEnumerable<CompassClass>> getClassesTodayDetailed = client.GetClasses(true, _startDate, _endDate);
+        Task unused1 = getClassesTodayDetailed.ContinueWith(async detailedTask => {
+            CompassClass[] result = detailedTask.Result.ToArray();
+            if (result.Length == 0) {
+                await htmlInteractor.Log($"Obtained and sorted classes with detailed information, however the length of the result was 0, ignoring.");
+                return;
+            }
             
-            // Get classes again but with more detail
-            Task<IEnumerable<CompassClass>> getClassesToday = client.GetClasses();
-            Task unused = getClassesToday.ContinueWith(async task => {
-                CompassClass[] result = task.Result.ToArray();
-                if (result.Length == 0) {
-                    await htmlInteractor.Log($"Obtained and sorted classes with detailed information, however the length of the result was 0, ignoring.");
-                    return;
-                }
+            // Wait until the quick load finishes
+            await htmlInteractor.Log($"Detailed class get complete! Waiting for quick load.");
+            while (_classesToday == null) {
+                Task.Yield();
+            }
+            
+            await htmlInteractor.Log($"Detected quick load complete, updating UI.");
                 
-                _classesToday = result;
-                // Sort all classes today so that the classes with activityType == Normal are at the top
-                Array.Sort(_classesToday, (a, b) => {
-                    if (a.ActivityType == b.ActivityType) {
-                        return 0;
-                    }
-                    if (a.ActivityType == CompassClassType.Normal) {
-                        return 1;
-                    }
-                    return -1;
-                });
-                await htmlInteractor.Log($"Obtained and sorted classes with detailed information ({_classesToday.Length}), reloading dom");
-                await InvokeAsync(StateHasChanged);
-                _classesDisplay.Reload();
+            _classesToday = result;
+            // Sort all classes today so that the classes with activityType == Normal are at the top
+            Array.Sort(_classesToday, (a, b) => {
+                if (a.ActivityType == b.ActivityType) {
+                    return 0;
+                }
+                if (a.ActivityType == CompassClassType.Normal) {
+                    return 1;
+                }
+                return -1;
             });
+            await htmlInteractor.Log($"Obtained and sorted classes with detailed information ({_classesToday.Length}), reloading dom");
+            await InvokeAsync(StateHasChanged);
+            _classesDisplay!.Reload();
         });
     }
 

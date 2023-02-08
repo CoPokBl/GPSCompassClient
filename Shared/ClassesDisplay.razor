@@ -34,7 +34,7 @@ else {
                                 </Tooltip>
                             </div>
                             <div class="col-md-6 text-end">
-                                <em>@item.StartTime.ToShortTimeString()-@item.EndTime.ToShortTimeString()</em>
+                                <em>@item.StartTime.ToLocalTime().ToShortTimeString()-@item.EndTime.ToLocalTime().ToShortTimeString()</em>
                             </div>
                         </div>
                     </h6>

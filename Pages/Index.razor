@@ -69,15 +69,15 @@
         Task unused = getClassesToday.ContinueWith( async task => {
             _classesToday = task.Result.ToArray();
             // Sort all classes today so that the classes with activityType == Normal are at the top
-            Array.Sort(_classesToday, (a, b) => {
-                if (a.ActivityType == b.ActivityType) {
-                    return 0;
-                }
-                if (a.ActivityType == CompassClassType.Normal) {
-                    return 1;
-                }
-                return -1;
-            });
+            // Array.Sort(_classesToday, (a, b) => {
+            //     if (a.ActivityType == b.ActivityType) {
+            //         return 0;
+            //     }
+            //     if (a.ActivityType == CompassClassType.Normal) {
+            //         return 1;
+            //     }
+            //     return -1;
+            // });
             await htmlInteractor.Log($"Obtained and sorted classes with minimal information ({_classesToday.Length}), reloading dom");
             await InvokeAsync(StateHasChanged);
             await htmlInteractor.Log("My dom was reloaded");

@@ -27,7 +27,7 @@
             @foreach((DateTime, CompassClass[]) day in _classesOnEachDay) {
                 <div class="col-2 border border-light"> @* col-md-2 border border-light *@
                     <h4>@day.Item1.DayOfWeek @(day.Item1.Day)@GetOrdinalPrefix(day.Item1.Day)</h4>
-                    <ClassesDisplay Classes="day.Item2.Reverse().ToArray()"></ClassesDisplay>
+                    <ClassesDisplay Classes="day.Item2"></ClassesDisplay>
                 </div>
             }
         </div>

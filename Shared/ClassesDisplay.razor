@@ -9,7 +9,7 @@
 }
 else {
     DateTime? lastClassEnd = null;
-    @foreach (CompassClass item in Classes) {
+    @foreach (CompassClass item in Classes.Reverse()) {
         item.ThrowIfNull();
         if (lastClassEnd != null && item.StartTime - lastClassEnd.Value > TimeSpan.FromMinutes(2) && item.ActivityType != CompassClassType.WeekNumber) {
             // There is a gap between this class and the last one
